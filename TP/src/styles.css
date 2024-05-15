@@ -12,16 +12,22 @@ body {
 }
 
 .container {
-    display: flex;
     max-width: 1200px;
     margin: 20px auto;
+    display: flex;
 }
 
 .sidebar {
-    width: 200px;
+    width: auto;
+    min-width: 50px;
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 4em;
 }
 
 .dashboard {
@@ -42,6 +48,8 @@ h2 {
     background-color: #f0f0f0;
     cursor: pointer;
     border-radius: 5px;
+    padding-right: 50px;
+    margin-left: 10px;
 }
 
 .kpi:hover {
@@ -49,10 +57,12 @@ h2 {
 }
 
 #kpi-list {
-    padding-top: 2em;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
+    padding-top: 2em; /* Adiciona padding-top apenas quando o menu estiver aberto */
+    margin-bottom: 20px; /* Adiciona margin-bottom apenas quando o menu estiver aberto */
+    padding-right: 20px;
 }
 
 .chart {
@@ -64,7 +74,9 @@ h2 {
     padding: 10px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-
+.chart h3{
+    margin: 0.5em;
+}
 /* Estilos para o menu hamburger */
 .hamburger-menu {
     width: 30px;
@@ -72,6 +84,7 @@ h2 {
     position: relative;
     cursor: pointer;
     transition: transform 0.3s ease;
+    margin-right: 0.1em;
 }
 
 .bar {
@@ -96,14 +109,11 @@ h2 {
 }
 
 /* Efeitos de transição para os KPIs */
-#kpi-list {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
 .sidebar.active #kpi-list {
     max-height: 200px; /* Altura máxima dos KPIs quando o menu está aberto */
 }
+
+/* Estilos para os botões */
 button {
     padding: 10px 20px;
     background-color: #4CAF50;
@@ -119,8 +129,14 @@ button {
 button:hover {
     background-color: #45a049;
 }
+
+/* Estilos para o container dos botões */
 .buttons {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
+}
+
+.dashboard-header{
+    display: ruby-text;
 }
