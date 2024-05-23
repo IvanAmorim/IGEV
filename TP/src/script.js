@@ -4,16 +4,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const hamburgerMenu = document.querySelector('.hamburger-menu');
     const dashboard = document.querySelector('.dashboard');
     const discardArea = document.getElementById('discard-area');
+    const updateInterval = 60000; // Update interval in milliseconds (e.g., 60000 ms = 1 minute)
 
     function toggleMenu() {
         sidebar.classList.toggle('active');
         sidebar.classList.toggle('collapsed');
         hamburgerMenu.classList.toggle('active');
     }
-    
-    // Adicione o evento de clique ao menu hambúrguer
+
     hamburgerMenu.addEventListener('click', toggleMenu);
-    
 
     const grid = GridStack.init({
         column: 12,
@@ -33,10 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetchTopCryptosMarketData();
         } else if (kpiName === 'Market cap') {
             showForm('Area Chart');
-        } 
-        
-        
-        else if (kpiName === 'Accumulated Trading Volume') {
+        } else if (kpiName === 'Accumulated Trading Volume') {
             showForm('Scatter Plot');
         } else if (kpiName === 'Volume of Transactions') {
             fetchVolumeOfTransactionsData();
@@ -44,17 +40,10 @@ document.addEventListener("DOMContentLoaded", function () {
             fetchVolumeOfTransactionsData();
         } else if (kpiName === 'Total Market Cap Growth') {
             fetchTotalMarketCapGrowthData();
-        }else{
-            showCryptoForm()
-            // const chart = document.createElement('div');
-            // chart.className = 'grid-stack-item';
-            // chart.innerHTML = `<div class="grid-stack-item-content chart"><h3>${kpiName} Chart</h3></div>`;
-            // grid.addWidget(chart, { width: 6, height: 4, autoPosition: true });
+        } else {
+            showCryptoForm();
         }
     }
-
-
-
 
     function showForm(chartType) {
         const modal = document.createElement('div');
@@ -84,12 +73,12 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         `;
         document.body.appendChild(modal);
-    
+
         modal.querySelector('.close').onclick = function() {
             modal.style.display = 'none';
             document.body.removeChild(modal);
         };
-    
+
         modal.querySelector('#crypto-form').onsubmit = function(event) {
             event.preventDefault();
             const cryptoPair = document.getElementById('crypto-pair').value;
@@ -97,44 +86,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const chartType = document.getElementById('chart-type').value;
             modal.style.display = 'none';
             document.body.removeChild(modal);
-            console.log(chartType);
-            switch (chartType) {
-                case 'Line Chart':
-                    createLineChart(data, pair, window);
-                    break;
-                case 'Bar Chart':
-                    createBarChart(data, pair, window);
-                    break;
-                case 'Pie Chart':
-                    createPieChart(data, pair, window);
-                    break;
-                case 'Area Chart':
-                    fetchMarketCapData(cryptoPair, timeWindow, chartType);
-                    break;
-                case 'Scatter Plot':
-                    fetchScatterPlotData(cryptoPair, timeWindow);
-                    break;
-                case 'Candlestick Chart':
-                    createCandlestickChart(data, pair, window);
-                    break;
-                case 'Boxplot Chart':
-                    createBoxplotChart(data, pair, window);
-                    break;
-                case 'Bubble Chart':
-                    createBubbleChart(data, pair, window);
-                    break;
-                default:
-                    console.error('Tipo de gráfico desconhecido');
-                    break;
-            }
+            fetchCryptoData(cryptoPair, timeWindow, chartType);
         };
-    
+
         modal.style.display = 'block';
     }
-    
-    
-
-
 
     function showCryptoForm() {
         const modal = document.createElement('div');
@@ -191,28 +147,143 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function fetchScatterPlotData(pair, timeWindow) {
-       const [crypto, currency] = pair.split('/');
-    const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${timeWindow}`;
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao obter os dados da API de criptomoedas');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data.prices) {
-                throw new Error('Data format error: prices array is undefined');
-            }
-            const boxplotData = data.prices.map(price => price[1]);
-            createBoxplotChart(boxplotData, pair, timeWindow);
-        })
-        .catch(error => {
-            console.error('Erro ao buscar dados da API de criptomoedas:', error);
-        });
-}
+        const [crypto, currency] = pair.split('/');
+        const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${timeWindow}`;
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter os dados da API de criptomoedas');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.prices) {
+                    throw new Error('Data format error: prices array is undefined');
+                }
+                const scatterPlotData = data.prices.map(price => price[1]);
+                createScatterPlot(scatterPlotData, pair, timeWindow);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da API de criptomoedas:', error);
+            });
+    }
 
+    function fetchVolumeOfTransactionsData() {
+        const apiUrl = 'https://api.coingecko.com/api/v3/exchanges/binance/volume_chart?days=30';
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter os dados de volume de transações da API');
+                }
+                return response.json();
+            })
+            .then(data => {
+                createBarChart({ total_volumes: data }, 'binance', 30);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados de volume de transações da API:', error);
+            });
+    }
 
+    function fetchTopCryptosMarketData() {
+        const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1';
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter os dados da API de criptomoedas');
+                }
+                return response.json();
+            })
+            .then(data => {
+                createPieChart(data);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da API de criptomoedas:', error);
+            });
+    }
+
+    function fetchCryptoData(pair, window, chartType) {
+        const [crypto, currency] = pair.split('/');
+        const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${window}`;
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter os dados da API de criptomoedas');
+                }
+                return response.json();
+            })
+            .then(data => {
+                switch (chartType) {
+                    case 'Line Chart':
+                        createLineChart(data, pair, window);
+                        break;
+                    case 'Bar Chart':
+                        createBarChart(data, pair, window);
+                        break;
+                    case 'Pie Chart':
+                        createPieChart(data, pair, window);
+                        break;
+                    case 'Area Chart':
+                        createAreaChart(data, pair, window);
+                        break;
+                    case 'Scatter Plot':
+                        createScatterPlot(data, pair, window);
+                        break;
+                    case 'Bubble Chart':
+                        createBubbleChart(data, pair, window);
+                        break;
+                    default:
+                        console.error('Tipo de gráfico desconhecido');
+                        break;
+                }
+                setInterval(() => updateChart(pair, window, chartType), updateInterval);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da API de criptomoedas:', error);
+            });
+    }
+
+    function updateChart(pair, window, chartType) {
+        const [crypto, currency] = pair.split('/');
+        const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${window}`;
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter os dados da API de criptomoedas');
+                }
+                return response.json();
+            })
+            .then(data => {
+                switch (chartType) {
+                    case 'Line Chart':
+                        updateLineChart(data, pair, window);
+                        break;
+                    case 'Bar Chart':
+                        updateBarChart(data, pair, window);
+                        break;
+                    case 'Pie Chart':
+                        updatePieChart(data, pair, window);
+                        break;
+                    case 'Area Chart':
+                        updateAreaChart(data, pair, window);
+                        break;
+                    case 'Scatter Plot':
+                        updateScatterPlot(data, pair, window);
+                        break;
+                    case 'Bubble Chart':
+                        updateBubbleChart(data, pair, window);
+                        break;
+                    default:
+                        console.error('Tipo de gráfico desconhecido');
+                        break;
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da API de criptomoedas:', error);
+            });
+    }
+
+ 
     kpiList.querySelectorAll('.kpi').forEach(kpi => {
         kpi.addEventListener('dragstart', function (event) {
             const kpiName = event.target.innerText;
@@ -247,117 +318,17 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
     });
 
-    function fetchVolumeOfTransactionsData() {
-        const apiUrl = 'https://api.coingecko.com/api/v3/exchanges/binance/volume_chart?days=30'; // Example API URL
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados de volume de transações da API');
-                }
-                return response.json();
-            })
-            .then(data => {
-                createBarChart({ total_volumes: data }, 'binance', 30);
-            })
-            .catch(error => {
-                console.error('Erro ao buscar dados de volume de transações da API:', error);
-            });
-    }
-
-    function fetchTopCryptosMarketData() {
-        const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1';
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados da API de criptomoedas');
-                }
-                return response.json();
-            })
-            .then(data => {
-                createPieChart(data);
-            })
-            .catch(error => {
-                console.error('Erro ao buscar dados da API de criptomoedas:', error);
-            });
-    }
-    
-    function fetchCryptoData(pair, window, chartType) {
-        const [crypto, currency] = pair.split('/');
-        const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${window}`;
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados da API de criptomoedas');
-                }
-                return response.json();
-            })
-            .then(data => {
-                switch (chartType) {
-                    case 'Line Chart':
-                        createLineChart(data, pair, window);
-                        break;
-                    case 'Bar Chart':
-                        createCandlestickChart(data, pair, window);
-                        break;
-                    case 'Pie Chart':
-                        createPieChart(data, pair, window);
-                        break;
-                    case 'Area Chart':
-                        createAreaChart(data, pair, window);
-                        break;
-                    case 'Scatter Plot':
-                        createScatterPlot(data, pair, window);
-                        break;
-                    case 'Candlestick Chart':
-                        break;
-                    case 'Boxplot Chart':
-                        createBoxplotChart(data, pair, window);
-                        break;
-                    case 'Bubble Chart':
-                        createBubbleChart(data, pair, window);
-                        break;
-                    default:
-                        console.error('Tipo de gráfico desconhecido');
-                        break;
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao buscar dados da API de criptomoedas:', error);
-            });
-    }
-
-    
-
-    function fetchMarketCapData(pair, window, chartType) {
-        const [crypto, currency] = pair.split('/');
-        const apiUrl = `https://api.coingecko.com/api/v3/coins/${crypto}/market_chart?vs_currency=${currency}&days=${window}`;
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados de market cap da API');
-                }
-                return response.json();
-            })
-            .then(data => {
-                createAreaChart({ prices: data.market_caps }, `${crypto}/${currency}`, window); // Adapt as needed
-            })
-            .catch(error => {
-                console.error('Erro ao buscar dados de market cap da API:', error);
-            });
-    }
-    
-
-    // Create charts
+    // Chart creation functions
     function createLineChart(data, pair, window) {
         const chartContainer = document.createElement('div');
         chartContainer.className = 'grid-stack-item';
         chartContainer.innerHTML = `<div class="grid-stack-item-content chart"><h3>${pair} - Line Chart</h3></div>`;
         grid.addWidget(chartContainer, { width: 6, height: 4, autoPosition: true });
-    
-        const margin = { top: 20, right: 30, bottom: 70, left: 60 };  // Adjusted margins
+
+        const margin = { top: 20, right: 30, bottom: 70, left: 60 };
         const width = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
-    
+
         const svg = d3.select(chartContainer.querySelector('.chart')).append('svg')
             .attr('width', '100%')
             .attr('height', '100%')
@@ -365,70 +336,66 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr('preserveAspectRatio', 'xMidYMid meet')
             .append('g')
             .attr('transform', `translate(${margin.left},${margin.top})`);
-    
+
         const labels = data.prices.map(price => new Date(price[0]));
         const prices = data.prices.map(price => price[1]);
-    
+
         const x = d3.scaleTime()
             .domain(d3.extent(labels))
             .range([0, width]);
-    
+
         const y = d3.scaleLinear()
             .domain([d3.min(prices), d3.max(prices)])
             .range([height, 0]);
-    
+
         const line = d3.line()
             .x((d, i) => x(labels[i]))
             .y(d => y(d));
-    
+
         svg.append('path')
             .datum(prices)
             .attr('fill', 'none')
             .attr('stroke', 'steelblue')
             .attr('stroke-width', 2)
             .attr('d', line);
-    
+
         const xAxis = d3.axisBottom(x);
-    
-        // Adjust tick formatting based on the time window
+
         if (window <= 1) {
-            xAxis.ticks(d3.timeMinute.every(5)).tickFormat(d3.timeFormat("%H:%M:%S")); // Minute ticks
+            xAxis.ticks(d3.timeMinute.every(5)).tickFormat(d3.timeFormat("%H:%M:%S"));
         } else if (window <= 24) {
-            xAxis.ticks(d3.timeHour.every(1)).tickFormat(d3.timeFormat("%H:%M")); // Hourly ticks
+            xAxis.ticks(d3.timeHour.every(1)).tickFormat(d3.timeFormat("%H:%M"));
         } else {
-            xAxis.ticks(d3.timeDay.every(1)).tickFormat(d3.timeFormat("%b %d %H:%M")); // Daily ticks
+            xAxis.ticks(d3.timeDay.every(1)).tickFormat(d3.timeFormat("%b %d %H:%M"));
         }
-    
+
         svg.append('g')
             .attr('transform', `translate(0,${height})`)
             .call(xAxis)
             .selectAll("text")
             .attr("transform", "rotate(-45)")
             .style("text-anchor", "end");
-    
+
         svg.append('g')
             .call(d3.axisLeft(y).ticks(5));
     }
-    
-    
-    
 
     function createBarChart(data, pair, window) {
         const chartContainer = document.createElement('div');
         chartContainer.className = 'grid-stack-item';
         chartContainer.innerHTML = `<div class="grid-stack-item-content chart"><h3>${pair} - Volume of Transactions</h3></div>`;
         grid.addWidget(chartContainer, { width: 6, height: 4, autoPosition: true });
-    
-        const margin = { top: 20, right: 30, bottom: 50, left: 60 };  // Adjusted margins
+
+        const margin = { top: 20, right: 30, bottom: 50, left: 60 };
         const width = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
-    
-        const interval = Math.ceil(data.total_volumes.length / 30);  // Adjust the interval to reduce data points to around 30
+
+        const interval = Math.ceil(data.total_volumes.length / 30);
         const aggregatedVolumes = aggregateData(data.total_volumes, interval);
-    
+
         const labels = aggregatedVolumes.map(volume => new Date(volume[0]));
         const volumes = aggregatedVolumes.map(volume => volume[1]);
-    
+
         const svg = d3.select(chartContainer.querySelector('.chart')).append('svg')
             .attr('width', '100%')
             .attr('height', '100%')
@@ -436,16 +403,16 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr('preserveAspectRatio', 'xMidYMid meet')
             .append('g')
             .attr('transform', `translate(${margin.left},${margin.top})`);
-    
+
         const x = d3.scaleBand()
             .domain(labels)
             .range([0, width])
             .padding(0.1);
-    
+
         const y = d3.scaleLinear()
             .domain([0, d3.max(volumes)])
             .range([height, 0]);
-    
+
         svg.selectAll('.bar')
             .data(volumes)
             .enter()
@@ -456,26 +423,26 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr('width', x.bandwidth())
             .attr('height', d => height - y(d))
             .attr('fill', 'steelblue');
-    
+
         svg.append('g')
             .attr('transform', `translate(0,${height})`)
             .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %d")).ticks(5));
-    
+
         svg.append('g')
             .call(d3.axisLeft(y).ticks(5));
     }
-    
+
     function createPieChart(data) {
         const chartContainer = document.createElement('div');
         chartContainer.className = 'grid-stack-item';
         chartContainer.innerHTML = `<div class="grid-stack-item-content chart"><h3>Market Share of Top 10 Cryptocurrencies</h3></div>`;
         grid.addWidget(chartContainer, { width: 6, height: 4, autoPosition: true });
-    
+
         const margin = { top: 20, right: 30, bottom: 30, left: 40 };
         const width = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
         const radius = Math.min(width, height) / 2;
-    
+
         const svg = d3.select(chartContainer.querySelector('.chart')).append('svg')
             .attr('width', '100%')
             .attr('height', '100%')
@@ -483,30 +450,30 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr('preserveAspectRatio', 'xMidYMid meet')
             .append('g')
             .attr('transform', `translate(${(width + margin.left + margin.right) / 2}, ${(height + margin.top + margin.bottom) / 2})`);
-    
+
         const marketCaps = data.map(crypto => crypto.market_cap);
         const names = data.map(crypto => crypto.name);
-    
+
         const pie = d3.pie()(marketCaps);
-    
+
         const arc = d3.arc()
             .innerRadius(0)
             .outerRadius(radius);
-    
+
         const outerArc = d3.arc()
             .innerRadius(radius * 1.1)
             .outerRadius(radius * 1.1);
-    
+
         const arcs = svg.selectAll('.arc')
             .data(pie)
             .enter()
             .append('g')
             .attr('class', 'arc');
-    
+
         arcs.append('path')
             .attr('d', arc)
             .attr('fill', (d, i) => d3.schemeCategory10[i % 10]);
-    
+
         arcs.append('text')
             .attr('transform', function(d) {
                 const pos = outerArc.centroid(d);
@@ -518,7 +485,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return midAngle(d) < Math.PI ? 'start' : 'end';
             })
             .text((d, i) => names[i]);
-    
+
         arcs.append('line')
             .attr('x1', function(d) { return arc.centroid(d)[0]; })
             .attr('y1', function(d) { return arc.centroid(d)[1]; })
@@ -530,7 +497,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr('y2', function(d) { return outerArc.centroid(d)[1]; })
             .attr('stroke', 'black')
             .attr('stroke-width', 1);
-    
+
         function midAngle(d) {
             return d.startAngle + (d.endAngle - d.startAngle) / 2;
         }
@@ -795,4 +762,176 @@ document.addEventListener("DOMContentLoaded", function () {
         svg.append('g')
             .call(d3.axisLeft(y));
     }
+    function updateLineChart(data, pair, window) {
+        const chartContainer = document.querySelector(`[data-pair="${pair}"][data-window="${window}"][data-type="Line Chart"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+    
+        const labels = data.prices.map(price => new Date(price[0]));
+        const prices = data.prices.map(price => price[1]);
+    
+        const x = d3.scaleTime()
+            .domain(d3.extent(labels))
+            .range([0, svg.attr('width') - margin.left - margin.right]);
+    
+        const y = d3.scaleLinear()
+            .domain([d3.min(prices), d3.max(prices)])
+            .range([svg.attr('height') - margin.top - margin.bottom, 0]);
+    
+        const line = d3.line()
+            .x((d, i) => x(labels[i]))
+            .y(d => y(d));
+    
+        svg.select('path')
+            .datum(prices)
+            .attr('d', line);
+    
+        svg.select('.x.axis')
+            .call(d3.axisBottom(x));
+    
+        svg.select('.y.axis')
+            .call(d3.axisLeft(y));
+    }
+    
+    function updateBarChart(data, pair, window) {
+        const chartContainer = document.querySelector(`[data-pair="${pair}"][data-window="${window}"][data-type="Bar Chart"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+        const interval = Math.ceil(data.total_volumes.length / 30);
+        const aggregatedVolumes = aggregateData(data.total_volumes, interval);
+    
+        const labels = aggregatedVolumes.map(volume => new Date(volume[0]));
+        const volumes = aggregatedVolumes.map(volume => volume[1]);
+    
+        const x = d3.scaleBand()
+            .domain(labels)
+            .range([0, svg.attr('width') - margin.left - margin.right])
+            .padding(0.1);
+    
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(volumes)])
+            .range([svg.attr('height') - margin.top - margin.bottom, 0]);
+    
+        svg.selectAll('.bar')
+            .data(volumes)
+            .attr('x', (d, i) => x(labels[i]))
+            .attr('y', d => y(d))
+            .attr('height', d => svg.attr('height') - margin.top - margin.bottom - y(d));
+    
+        svg.select('.x.axis')
+            .call(d3.axisBottom(x));
+    
+        svg.select('.y.axis')
+            .call(d3.axisLeft(y));
+    }
+    
+    function updatePieChart(data) {
+        const chartContainer = document.querySelector(`[data-type="Pie Chart"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+        const marketCaps = data.map(crypto => crypto.market_cap);
+        const pie = d3.pie()(marketCaps);
+    
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(Math.min(svg.attr('width'), svg.attr('height')) / 2);
+    
+        svg.selectAll('.arc path')
+            .data(pie)
+            .attr('d', arc);
+    }
+    
+    function updateAreaChart(data, pair, window) {
+        const chartContainer = document.querySelector(`[data-pair="${pair}"][data-window="${window}"][data-type="Area Chart"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+    
+        const labels = data.prices.map(price => new Date(price[0]));
+        const prices = data.prices.map(price => price[1]);
+    
+        const x = d3.scaleTime()
+            .domain(d3.extent(labels))
+            .range([0, svg.attr('width') - margin.left - margin.right]);
+    
+        const y = d3.scaleLinear()
+            .domain([d3.min(prices), d3.max(prices)])
+            .range([svg.attr('height') - margin.top - margin.bottom, 0]);
+    
+        const area = d3.area()
+            .x((d, i) => x(labels[i]))
+            .y0(svg.attr('height') - margin.top - margin.bottom)
+            .y1(d => y(d));
+    
+        svg.select('path')
+            .datum(prices)
+            .attr('d', area);
+    
+        svg.select('.x.axis')
+            .call(d3.axisBottom(x));
+    
+        svg.select('.y.axis')
+            .call(d3.axisLeft(y));
+    }
+    
+    function updateScatterPlot(data, pair, window) {
+        const chartContainer = document.querySelector(`[data-pair="${pair}"][data-window="${window}"][data-type="Scatter Plot"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+    
+        const labels = data.prices.map(price => new Date(price[0]));
+        const prices = data.prices.map(price => price[1]);
+    
+        const x = d3.scaleTime()
+            .domain(d3.extent(labels))
+            .range([0, svg.attr('width') - margin.left - margin.right]);
+    
+        const y = d3.scaleLinear()
+            .domain([d3.min(prices), d3.max(prices)])
+            .range([svg.attr('height') - margin.top - margin.bottom, 0]);
+    
+        svg.selectAll('circle')
+            .data(prices)
+            .attr('cx', (d, i) => x(labels[i]))
+            .attr('cy', d => y(d));
+    
+        svg.select('.x.axis')
+            .call(d3.axisBottom(x));
+    
+        svg.select('.y.axis')
+            .call(d3.axisLeft(y));
+    }
+    
+    function updateBubbleChart(data, pair, window) {
+        const chartContainer = document.querySelector(`[data-pair="${pair}"][data-window="${window}"][data-type="Bubble Chart"] .chart`);
+        if (!chartContainer) return;
+        const svg = d3.select(chartContainer).select('svg g');
+    
+        const labels = data.prices.map(price => new Date(price[0]));
+        const prices = data.prices.map(price => price[1]);
+    
+        const x = d3.scaleTime()
+            .domain(d3.extent(labels))
+            .range([0, svg.attr('width') - margin.left - margin.right]);
+    
+        const y = d3.scaleLinear()
+            .domain([d3.min(prices), d3.max(prices)])
+            .range([svg.attr('height') - margin.top - margin.bottom, 0]);
+    
+        const z = d3.scaleLinear()
+            .domain([d3.min(prices), d3.max(prices)])
+            .range([5, 20]);
+    
+        svg.selectAll('circle')
+            .data(prices)
+            .attr('cx', (d, i) => x(labels[i]))
+            .attr('cy', d => y(d))
+            .attr('r', d => z(d));
+    
+        svg.select('.x.axis')
+            .call(d3.axisBottom(x));
+    
+        svg.select('.y.axis')
+            .call(d3.axisLeft(y));
+    }
+    
 });

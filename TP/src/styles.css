@@ -15,20 +15,25 @@ body {
     max-width: auto;
     margin: 20px 20px;
     display: flex;
+    
 }
 
 /* Define o estilo do sidebar quando ativo */
 .sidebar {
     width: 250px; /* Ajuste esta largura conforme necessário */
     transition: width 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
 }
+
+
 
 /* Define o estilo do sidebar quando colapsado */
 .sidebar.collapsed {
     width: 0;
     transition: width 0.3s ease;
     overflow: hidden; /* Esconde o conteúdo do sidebar */
-    margin-left:20px;
 }
 
 /* Estilo para o botão de menu */
@@ -44,12 +49,21 @@ body {
 .dashboard {
     /* margin-left: 250px; Deve coincidir com a largura do sidebar */
     transition: margin-left 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    flex:1;
 }
 
 /* Estilo para o conteúdo principal quando o sidebar está colapsado */
 .sidebar.collapsed + .dashboard {
     margin-left: 0;
     transition: margin-left 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    flex:1;
+    height: auto;
 }
 
 
@@ -75,7 +89,7 @@ h2 {
 #kpi-list {
     overflow: hidden;
     transition: max-height 0.3s ease;
-    padding-top: 2em; /* Adiciona padding-top apenas quando o menu estiver aberto */
+    padding-top: 4em; /* Adiciona padding-top apenas quando o menu estiver aberto */
     margin-bottom: 20px; /* Adiciona margin-bottom apenas quando o menu estiver aberto */
     padding-right: 20px;
 }
@@ -96,12 +110,14 @@ h2 {
 
 /* Estilos para o menu hamburger */
 .hamburger-menu {
-    width: 30px;
-    height: 20px;
+    padding-top: 22px;
+    padding-left: 10px;
+    width: 40px;
     position: relative;
     cursor: pointer;
     transition: transform 0.3s ease;
-    margin-right: 0.1em;
+    background-color: #fff;
+
 }
 
 .bar {
