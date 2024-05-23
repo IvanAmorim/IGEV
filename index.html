@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIG - Sistema de Informação Geográfica</title>
+    <link rel="stylesheet" href="src/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="hamburger-menu active">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Categorias</h2>
+                <button class="add-button"><i class="bi bi-plus-circle"></i></button>
+            </div>
+            <ul class="category-list" id="category-list">
+                <!-- Categorias Dinâmicas -->
+            </ul>
+        </div>
+        <div id="map" class="map"></div>
+        <div class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Nova Categoria</h2>
+                    <span class="close-button">&times;</span>
+                </div>
+                <form id="category-form">
+                    <label for="name">Nome:</label>
+                    <input type="text" id="name" name="name" placeholder="Canalizações">
+                    
+                    <label for="type">Tipo:</label>
+                    <select id="type" name="type">
+                        <option value="area">Área</option>
+                        <option value="linha">Linha</option>
+                        <option value="ponto">Ponto</option>
+                    </select>
+                    
+                    <label for="color">Cor:</label>
+                    <input type="color" id="color" name="color" value="#AAAAAA">
+                    
+                    <label for="icon">Ícone:</label>
+                    <input type="file" id="icon" name="icon">
+                    
+                    <div class="buttons">
+                        <button type="submit">Gravar</button>
+                        <button type="button" class="cancel-button">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="src/script.js"></script>
+</body>
+</html>
