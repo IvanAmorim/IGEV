@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.querySelector('.modal-header h2');
     let editIndex = null;
 
+    const defaultIconUrl = 'assets\icons8-layers-48.png'; 
+
+
     let categories = [];
     let activeCategory = null;
     let categoryLayers = {}; // Object to store layers per category
@@ -37,7 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('name').value = category.name;
             document.getElementById('type').value = category.type;
             document.getElementById('color').value = category.color;
-            // handle icon if necessary
+            // Display the icon name if editing a category with an icon
+            const iconInput = document.getElementById('icon');
+            if (category.icon) {
+                const iconLabel = document.createElement('label');
+                iconLabel.textContent = category.icon.name;
+                iconInput.parentNode.appendChild(iconLabel);
+            }
             modalTitle.textContent = 'Editar Categoria';
             editIndex = categories.indexOf(category);
         } else {
@@ -153,9 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryList.innerHTML = '';
         categories.forEach((category, index) => {
             const listItem = document.createElement('li');
+            const iconHTML = category.icon ? `<img src="${URL.createObjectURL(category.icon)}" alt="${category.name}" class="category-icon">` : '';
+
             listItem.innerHTML = `
                 <input type="radio" name="active-category" data-index="${index}" ${activeCategory === category ? 'checked' : ''}>
-                ${category.name}
+                ${iconHTML} ${category.name}
                 <button class="edit-button" data-index="${index}">
                     <i class="bi bi-pencil"></i>
                 </button>
